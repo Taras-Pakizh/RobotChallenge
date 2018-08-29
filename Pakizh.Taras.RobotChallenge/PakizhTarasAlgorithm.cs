@@ -51,7 +51,8 @@ namespace Pakizh.Taras.RobotChallenge
         public RobotCommand DoStep(IList<Robot.Common.Robot> _robots, int _robotToMoveIndex, Map _map)
         {
             Init(_robots, _robotToMoveIndex, _map);
-            if((movingRobot.Energy > Helper.EnergyToBorn) && (myRobotsCount <= 100) && (myRobotsCount <= map.Stations.Count) && (Round < Helper.RoundToStop))
+            if((movingRobot.Energy > Helper.EnergyToBorn) && (myRobotsCount <= 100) && 
+                (myRobotsCount <= map.Stations.Count) && (Round < Helper.RoundToStop))
                 return new CreateNewRobotCommand();
             if (IsCollecting(movingRobot.Position) && IsStationFree(sortedStations[0]))
                 return new CollectEnergyCommand();
@@ -59,26 +60,23 @@ namespace Pakizh.Taras.RobotChallenge
             if (station == null)
                 station = FindNearestOccupiedStation();
             Position position = FindNearestFreeCellAroundStation(station);
-            return new MoveCommand() { NewPosition = GetNextPosition(position, station) };
+            return new MoveCommand() { NewPosition = GetNextPosition(position) };
         }
 
         //StrategyOfMoving
-        public Position GetNextPosition(Position position, EnergyStation station)
+        public Position GetNextPosition(Position position)
         {
             Position result = position.Copy();
-            int maxRestored = 200;
-            int index = 1;
-            do
+            while (true)
             {
-                int energySpend = Helper.FindDistance(result, movingRobot.Position) * index;
+                int energySpend = Helper.FindDistance(result, movingRobot.Position);
                 if(movingRobot.Energy < energySpend)
                 {
                     result = DivideWayBy2(result);
-                    index *= 2;
                     continue;
                 }
                 break;
-            } while (true);
+            }
             return result;
         }
         public Position DivideWayBy2(Position position)
@@ -99,15 +97,15 @@ namespace Pakizh.Taras.RobotChallenge
                         position.Y -= 1;
                     else position.Y += 1;
                 }
-                if (IsCellFree(position))
+                if ((length - way == 1))
                 {
-                    length--;
+                    if (IsCellFree(position))
+                        length--;
+                    else continue;
                 }
                 else
                 {
-                    if (length - way == 1)
-                        continue;
-                    else length--;
+                    length--;
                 }
             }
             return position;

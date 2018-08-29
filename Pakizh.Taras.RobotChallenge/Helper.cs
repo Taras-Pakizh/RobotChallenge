@@ -12,6 +12,7 @@ namespace Pakizh.Taras.RobotChallenge
         public static int distance = 3;
         public static int EnergyToBorn = 350;
         public static int RoundToStop = 40;
+        public static int maxRestoredEnergy = 200;
 
         public static int FindDistance(Position a, Position b)
         {
