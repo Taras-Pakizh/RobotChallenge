@@ -75,7 +75,7 @@ namespace Pakizh.Taras.RobotChallenge
                 }
                 if(position == movingRobot.Position) 
                     return new CollectEnergyCommand();
-                return new MoveCommand() { NewPosition = GetNextPosition(position) };
+                return new MoveCommand() { NewPosition = position };
             }while(true);
         }
 
@@ -86,7 +86,7 @@ namespace Pakizh.Taras.RobotChallenge
             steps = 1;
             while (true)
             {
-                int energySpend = Helper.FindDistance(result, movingRobot.Position) * index;
+                int energySpend = Helper.FindDistance(result, movingRobot.Position) * steps;
                 if(movingRobot.Energy < energySpend)
                 {
                     result = DivideWayBy2(result);
