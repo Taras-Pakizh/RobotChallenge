@@ -51,28 +51,46 @@ namespace Pakizh.Taras.RobotChallenge
         public RobotCommand DoStep(IList<Robot.Common.Robot> _robots, int _robotToMoveIndex, Map _map)
         {
             Init(_robots, _robotToMoveIndex, _map);
+            
             if((movingRobot.Energy > Helper.EnergyToBorn) && (myRobotsCount <= 100) && 
                 (myRobotsCount <= map.Stations.Count) && (Round < Helper.RoundToStop))
-                return new CreateNewRobotCommand();
+                return new CreateNewRobotCommand(){ NewRobotEnergy = 200 };
+                
+                
             if (IsCollecting(movingRobot.Position) && IsStationFree(sortedStations[0]))
                 return new CollectEnergyCommand();
+                
+                
             EnergyStation station = FindNearestFreeStation();
-            if (station == null)
-                station = FindNearestOccupiedStation();
-            Position position = FindNearestFreeCellAroundStation(station);
-            return new MoveCommand() { NewPosition = GetNextPosition(position) };
+            do
+            {
+                if (station == null)
+                    station = FindNearestOccupiedStation();
+                Position position = FindNearestFreeCellAroundStation(station);
+                position = GetNextPosition(position, out int steps);
+                if(steps > 5 && IsStationFree(station))
+                {
+                    station = null;
+                    continue;
+                }
+                if(position == movingRobot.Position) 
+                    return new CollectEnergyCommand();
+                return new MoveCommand() { NewPosition = GetNextPosition(position) };
+            }while(true);
         }
 
         //StrategyOfMoving
-        public Position GetNextPosition(Position position)
+        public Position GetNextPosition(Position position, out int steps)
         {
             Position result = position.Copy();
+            steps = 1;
             while (true)
             {
-                int energySpend = Helper.FindDistance(result, movingRobot.Position);
+                int energySpend = Helper.FindDistance(result, movingRobot.Position) * index;
                 if(movingRobot.Energy < energySpend)
                 {
                     result = DivideWayBy2(result);
+                    steps *= 2;
                     continue;
                 }
                 break;
@@ -83,7 +101,7 @@ namespace Pakizh.Taras.RobotChallenge
         {
             int length = Math.Abs(movingRobot.Position.X - position.X) + Math.Abs(movingRobot.Position.Y - position.Y);
             int way = length / 2;
-            while(length >= way)
+            while(length > way)
             {
                 if(Math.Abs(position.X - movingRobot.Position.X) > Math.Abs(position.Y - movingRobot.Position.Y))
                 {

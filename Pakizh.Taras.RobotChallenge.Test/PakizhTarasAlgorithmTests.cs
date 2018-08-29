@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Pakizh.Taras.RobotChallenge.Tests
 {
-    [TestClass()]
+    [TestClass]
     public class PakizhTarasAlgorithmTests
     {
         [TestMethod()]

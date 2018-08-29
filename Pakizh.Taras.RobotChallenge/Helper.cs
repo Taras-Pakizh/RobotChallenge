@@ -7,11 +7,11 @@ using Robot.Common;
 
 namespace Pakizh.Taras.RobotChallenge
 {
-    static class Helper
+    public static class Helper
     {
         public static int distance = 3;
         public static int EnergyToBorn = 350;
-        public static int RoundToStop = 40;
+        public static int RoundToStop = 30;
         public static int maxRestoredEnergy = 200;
 
         public static int FindDistance(Position a, Position b)
