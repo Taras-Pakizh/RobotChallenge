@@ -12,9 +12,9 @@ namespace Pakizh.Taras.RobotChallenge
     {
         //Vars
         private int Round { get; set; }
-        private Robot.Common.Robot movingRobot;
+        public Robot.Common.Robot movingRobot;
         private Map map;
-        private IList<Robot.Common.Robot> robots;
+        public IList<Robot.Common.Robot> robots;
         private EnergyStation[] sortedStations;
         private int myRobotsCount;
         private Dictionary<int, Position> PropertyBook;
@@ -60,14 +60,25 @@ namespace Pakizh.Taras.RobotChallenge
         /// <returns>Command</returns>
         public RobotCommand DoStep(IList<Robot.Common.Robot> _robots, int _robotToMoveIndex, Map _map)
         {
-            Init(_robots, _robotToMoveIndex, _map);
-
             RobotCommand command = null;
-            command = GetCreateNewRobotCommand();
-            if (command == null)
-                command = GetCollectEnergyCommand();
-            if (command == null)
-                command = GetMoveCommand();
+            try
+            {
+                Init(_robots, _robotToMoveIndex, _map);
+
+                
+                command = GetCreateNewRobotCommand();
+                if (command == null)
+                    command = GetCollectEnergyCommand();
+                if (command == null)
+                    command = GetMoveCommand();
+            }
+            catch(Exception e)
+            {
+                using(StreamWriter sw = new StreamWriter(@"log.txt", true, Encoding.Default))
+                {
+                    sw.WriteLine(e.Message + " " + e.TargetSite.ToString() + " " + e.Source.ToString());
+                }
+            }
             using(StreamWriter sw = new StreamWriter(@"log.txt", true, Encoding.Default))
             {
                 StringBuilder builder = new StringBuilder();
@@ -117,6 +128,7 @@ namespace Pakizh.Taras.RobotChallenge
         public MoveCommand GetMoveCommand()
         {
             EnergyStation station = null;
+            bool fuckingChecker = false;
             if (PropertyBook.ContainsKey(MyRobotId))
             {
                 if(IsStationFree(new EnergyStation() { Position = PropertyBook[MyRobotId] }))
@@ -129,16 +141,25 @@ namespace Pakizh.Taras.RobotChallenge
                         PropertyBook[MyRobotId] = sortedStations[0].Position;
                         station = sortedStations[0];
                     }
-                    else station = station = map.Stations.First(x => x.Position == PropertyBook[MyRobotId]);
+                    else station = map.Stations.First(x => x.Position == PropertyBook[MyRobotId]);
                 }
             }
-
-            if(station == null)
+            
+            if (station == null)
                 station = FindNearestFreeStation();
+            else fuckingChecker = true;
             do
             {
+                //if(station == null && fuckingChecker)
+                //{
+                //    station = FindNearestFreeStation();
+                //    fuckingChecker = false;
+                //}
                 if (station == null)
                     station = FindNearestOccupiedStation();
+                if (station == null)
+                    throw new Exception(fuckingChecker.ToString());
+                    //throw new Exception(movingRobot.Position + " " + sortedStations[0].Position + " ---- " + String.Join(" ", robots.Select(x => x.Position)));
                 Position position = FindNearestFreeCellAroundStation(station);
                 position = GetNextPosition(position, out int steps);
                 if (steps > 5 && IsStationFree(station))
@@ -212,8 +233,8 @@ namespace Pakizh.Taras.RobotChallenge
         {
             foreach(var station in sortedStations)
             {
-                if (IsStationFree(station)) continue;
-                return station;
+                if (!IsStationFree(station))
+                    return station;
             }
             return null;
         }
@@ -262,7 +283,7 @@ namespace Pakizh.Taras.RobotChallenge
         {
             foreach (var robot in robots)
             {
-                if (robot != movingRobot)
+                if (robot.Position != movingRobot.Position)
                 {
                     if (robot.Position == cell)
                         return false;
@@ -273,7 +294,7 @@ namespace Pakizh.Taras.RobotChallenge
         public bool IsStationFree(EnergyStation station)
         {
             foreach (var robot in robots)
-                if (robot != movingRobot && Helper.CanCollect(station.Position, robot.Position))
+                if ((robot.Position != movingRobot.Position) && Helper.CanCollect(station.Position, robot.Position))
                     return false;
             return true;
         }
