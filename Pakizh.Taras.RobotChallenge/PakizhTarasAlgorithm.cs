@@ -97,7 +97,7 @@ namespace Pakizh.Taras.RobotChallenge
             if (IsCollecting(movingRobot.Position))
             {
                 var stations = GetCollectedStations();
-                PropertyBook.Add(MyRobotId, stations.OrderBy(x=>x.Energy).First().Position);
+                PropertyBook.Add(MyRobotId, stations.OrderByDescending(x=>x.Energy).First().Position);
                 return new CollectEnergyCommand();
             }
             return null;
