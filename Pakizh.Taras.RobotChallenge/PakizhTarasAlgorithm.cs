@@ -230,10 +230,10 @@ namespace Pakizh.Taras.RobotChallenge
                     positions[row][0] = new Position(positions[0][0].X, positions[0][0].Y + row);
                 for(int col = 0; col < positions.Length; ++col)
                 {
-                    if (positions[row][col] != null || !IsCellFree(positions[row][col]))
+                    if(positions[row][col] == null)
+                        positions[row][col] = new Position(positions[0][0].X + col, positions[0][0].Y);
+                    if (!IsCellValid(positions[row][col]) || !IsCellFree(positions[row][col]))
                         continue;
-                    positions[row][col] = new Position(positions[0][0].X + col, positions[0][0].Y);
-                    if (!IsCellValid(positions[row][col])) continue;
                     distance = Helper.FindDistance(movingRobot.Position, positions[row][col]);
                     if(distance < minDistance)
                     {
