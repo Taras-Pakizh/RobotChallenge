@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Robot.Common;
+using System.IO;
 
 namespace Pakizh.Taras.RobotChallenge
 {
@@ -67,6 +68,17 @@ namespace Pakizh.Taras.RobotChallenge
                 command = GetCollectEnergyCommand();
             if (command == null)
                 command = GetMoveCommand();
+            using(StreamWriter sw = new StreamWriter(@"log.txt", true, Encoding.Default))
+            {
+                StringBuilder builder = new StringBuilder();
+                builder.Append("Id = " + MyRobotId.ToString() + " " + movingRobot.Position + " ");
+                builder.Append(command.ToString() + " ");
+                if(command is MoveCommand)
+                {
+                    builder.Append(((MoveCommand)command).NewPosition);
+                }
+                sw.WriteLine(builder);
+            }
             return command;
         }
 
