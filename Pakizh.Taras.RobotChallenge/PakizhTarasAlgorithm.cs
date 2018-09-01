@@ -16,24 +16,33 @@ namespace Pakizh.Taras.RobotChallenge
         private IList<Robot.Common.Robot> robots;
         private EnergyStation[] sortedStations;
         private int myRobotsCount;
+        private Dictionary<int, Position> PropertyBook;
+        private int MyRobotId;
 
         //Constructor
         public PakizhTarasAlgorithm()
         {
             Round = 0;
             Logger.OnLogRound += (sender, e) => Round++;
+            PropertyBook = new Dictionary<int, Position>();
         }
-        public PakizhTarasAlgorithm(IList<Robot.Common.Robot> _robots, int _robotToMoveIndex, Map _map)
+
+        //Init
+        public void Init(IList<Robot.Common.Robot> _robots, int _robotToMoveIndex, Map _map)
         {
-            Init(_robots, _robotToMoveIndex, _map);
-            Round = 0;
-            Logger.OnLogRound += (sender, e) => Round++;
+            robots = _robots;
+            map = _map;
+            movingRobot = robots[_robotToMoveIndex];
+            MyRobotId = _robotToMoveIndex;
+            sortedStations = map.Stations.Where(x=>!PropertyBook.ContainsValue(x.Position)).ToArray();
+            sortedStations = sortedStations.OrderBy(x => Helper.FindDistance(x.Position, movingRobot.Position)).ToArray();
+            myRobotsCount = robots.Count(x => x.Owner == movingRobot.Owner);
         }
 
         #region Interface_Description
         public string Author
         {
-            get { return "Pakizh Taras PZ-34"; }
+            get { return "Pakizh Taras"; }
         }
         public string Description
         {
@@ -51,32 +60,82 @@ namespace Pakizh.Taras.RobotChallenge
         public RobotCommand DoStep(IList<Robot.Common.Robot> _robots, int _robotToMoveIndex, Map _map)
         {
             Init(_robots, _robotToMoveIndex, _map);
-            
-            if((movingRobot.Energy > Helper.EnergyToBorn) && (myRobotsCount <= 100) && 
-                (myRobotsCount <= map.Stations.Count) && (Round < Helper.RoundToStop))
-                return new CreateNewRobotCommand(){ NewRobotEnergy = 200 };
-                
-                
-            if (IsCollecting(movingRobot.Position) && IsStationFree(sortedStations[0]))
+
+            RobotCommand command = null;
+            command = GetCreateNewRobotCommand();
+            if (command == null)
+                command = GetCollectEnergyCommand();
+            if (command == null)
+                command = GetMoveCommand();
+            return command;
+        }
+
+        //Commands
+        public CreateNewRobotCommand GetCreateNewRobotCommand()
+        {
+            CreateNewRobotCommand command = null;
+            if ((myRobotsCount <= 100) && (myRobotsCount < map.Stations.Count) && (Round < Helper.RoundToStop))
+            {
+                int distance = Helper.FindDistance(movingRobot.Position, sortedStations[0].Position);
+                if (distance < 100 && movingRobot.Energy > (100 + Helper.EnergyToBorn))
+                    command = new CreateNewRobotCommand() { NewRobotEnergy = 100 };
+                else if (distance < 300 && movingRobot.Energy > (300 + Helper.EnergyToBorn))
+                    command = new CreateNewRobotCommand() { NewRobotEnergy = 300 };
+                else if (distance < 2000 && movingRobot.Energy > (1000 + Helper.EnergyToBorn))
+                    command = new CreateNewRobotCommand() { NewRobotEnergy = 1000 };
+            }
+            return command;
+        }
+        public CollectEnergyCommand GetCollectEnergyCommand()
+        {
+            if (PropertyBook.ContainsKey(MyRobotId))
+            {
+                if (Helper.CanCollect(PropertyBook[MyRobotId], movingRobot.Position))
+                    return new CollectEnergyCommand();
+                else return null;
+            }
+            if (IsCollecting(movingRobot.Position))
+            {
+                var stations = GetCollectedStations();
+                PropertyBook.Add(MyRobotId, stations.OrderBy(x=>x.Energy).First().Position);
                 return new CollectEnergyCommand();
-                
-                
-            EnergyStation station = FindNearestFreeStation();
+            }
+            return null;
+        }
+        public MoveCommand GetMoveCommand()
+        {
+            EnergyStation station = null;
+            if (PropertyBook.ContainsKey(MyRobotId))
+            {
+                if(IsStationFree(new EnergyStation() { Position = PropertyBook[MyRobotId] }))
+                    station = map.Stations.First(x => x.Position == PropertyBook[MyRobotId]);
+                else
+                {
+                    int distance = Helper.FindDistance(movingRobot.Position, sortedStations[0].Position);
+                    if(distance < movingRobot.Energy && distance < 300)
+                    {
+                        PropertyBook[MyRobotId] = sortedStations[0].Position;
+                        station = sortedStations[0];
+                    }
+                    else station = station = map.Stations.First(x => x.Position == PropertyBook[MyRobotId]);
+                }
+            }
+
+            if(station == null)
+                station = FindNearestFreeStation();
             do
             {
                 if (station == null)
                     station = FindNearestOccupiedStation();
                 Position position = FindNearestFreeCellAroundStation(station);
                 position = GetNextPosition(position, out int steps);
-                if(steps > 5 && IsStationFree(station))
+                if (steps > 5 && IsStationFree(station))
                 {
                     station = null;
                     continue;
                 }
-                if(position == movingRobot.Position) 
-                    return new CollectEnergyCommand();
                 return new MoveCommand() { NewPosition = position };
-            }while(true);
+            } while (true);
         }
 
         //StrategyOfMoving
@@ -146,6 +205,14 @@ namespace Pakizh.Taras.RobotChallenge
             }
             return null;
         }
+        public List<EnergyStation> GetCollectedStations()
+        {
+            List<EnergyStation> stations = new List<EnergyStation>();
+            foreach(var station in sortedStations)
+                if (Helper.CanCollect(station.Position, movingRobot.Position))
+                    stations.Add(station);
+            return stations;
+        }
 
         //Find Cell
         public Position FindNearestFreeCellAroundStation(EnergyStation station)
@@ -194,14 +261,14 @@ namespace Pakizh.Taras.RobotChallenge
         public bool IsStationFree(EnergyStation station)
         {
             foreach (var robot in robots)
-                if (robot != movingRobot && Helper.CanCollect(station, robot.Position))
+                if (robot != movingRobot && Helper.CanCollect(station.Position, robot.Position))
                     return false;
             return true;
         }
         public bool IsCollecting(Position position)
         {
             foreach (var station in sortedStations)
-                if (Helper.CanCollect(station, position))
+                if (Helper.CanCollect(station.Position, position))
                     return true;
             return false;
         }
@@ -211,18 +278,6 @@ namespace Pakizh.Taras.RobotChallenge
                 if (position.Y > -1 && position.Y < 100)
                     return true;
             return false;
-        }
-
-        //Init
-        public void Init(IList<Robot.Common.Robot> _robots, int _robotToMoveIndex, Map _map)
-        {
-            robots = _robots;
-            map = _map;
-            movingRobot = robots[_robotToMoveIndex];
-            //map.Stations.CopyTo(sortedStations, 0);
-            sortedStations = map.Stations.ToArray();
-            sortedStations = sortedStations.OrderBy(x => Helper.FindDistance(x.Position, movingRobot.Position)).ToArray();
-            myRobotsCount = robots.Count(x => x.Owner == movingRobot.Owner);
         }
     }
 }
