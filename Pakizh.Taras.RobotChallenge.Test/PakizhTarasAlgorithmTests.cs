@@ -12,6 +12,34 @@ namespace Pakizh.Taras.RobotChallenge.Tests
     [TestClass]
     public class PakizhTarasAlgorithmTests
     {
+        private PakizhTarasAlgorithm pakizh;
+
+        [TestInitialize]
+        public void SetValues()
+        {
+            pakizh = new PakizhTarasAlgorithm()
+            {
+                movingRobot = new Robot.Common.Robot() { Position = new Position(62, 98) },
+                robots = new List<Robot.Common.Robot>()
+                {
+                    new Robot.Common.Robot(){Position = new Position(69,81)},
+                    new Robot.Common.Robot(){Position = new Position(55,92)},
+                    new Robot.Common.Robot(){Position = new Position(76,91)},
+                    new Robot.Common.Robot(){Position = new Position(70,79)},
+                    new Robot.Common.Robot(){Position = new Position(49,99)},
+                    new Robot.Common.Robot(){Position = new Position(62,98)},
+                    new Robot.Common.Robot(){Position = new Position(60,85)},
+                    new Robot.Common.Robot(){Position = new Position(59,93)},
+                    new Robot.Common.Robot(){Position = new Position(62,97)},
+                    new Robot.Common.Robot(){Position = new Position(83,81)},
+                },
+                sortedStations = new EnergyStation[]
+                {
+                    new EnergyStation() { Position = new Position(85, 70) }
+                }
+            };
+        }
+
         [TestMethod()]
         public void PakizhTarasAlgorithmTest()
         {
@@ -33,7 +61,10 @@ namespace Pakizh.Taras.RobotChallenge.Tests
         [TestMethod()]
         public void GetNextPositionTest()
         {
-            Assert.Fail();
+            Position finish = new Position(51, 50);
+            pakizh.movingRobot.Position = new Position(25, 25);
+            pakizh.movingRobot.Energy = 50;
+            Assert.AreEqual(pakizh.movingRobot.Position, pakizh.GetNextPosition(finish, out int steps));
         }
 
         [TestMethod()]
@@ -45,13 +76,13 @@ namespace Pakizh.Taras.RobotChallenge.Tests
         [TestMethod()]
         public void FindNearestFreeStationTest()
         {
-            Assert.Fail();
+            Assert.IsNotNull(pakizh.FindNearestFreeStation());
         }
 
         [TestMethod()]
         public void FindNearestOccupiedStationTest()
         {
-            Assert.Fail();
+            Assert.IsNotNull(pakizh.FindNearestOccupiedStation());
         }
 
         [TestMethod()]
@@ -69,24 +100,7 @@ namespace Pakizh.Taras.RobotChallenge.Tests
         [TestMethod()]
         public void IsStationFreeTest()
         {
-            PakizhTarasAlgorithm pakizh = new PakizhTarasAlgorithm()
-            {
-                movingRobot = new Robot.Common.Robot() { Position = new Position(62, 98) },
-                robots = new List<Robot.Common.Robot>()
-                {
-                    new Robot.Common.Robot(){Position = new Position(69,81)},
-                    new Robot.Common.Robot(){Position = new Position(55,92)},
-                    new Robot.Common.Robot(){Position = new Position(76,91)},
-                    new Robot.Common.Robot(){Position = new Position(70,79)},
-                    new Robot.Common.Robot(){Position = new Position(49,99)},
-                    new Robot.Common.Robot(){Position = new Position(62,98)},
-                    new Robot.Common.Robot(){Position = new Position(60,85)},
-                    new Robot.Common.Robot(){Position = new Position(59,93)},
-                    new Robot.Common.Robot(){Position = new Position(62,97)},
-                    new Robot.Common.Robot(){Position = new Position(83,81)},
-                }
-            };
-            Assert.AreEqual(true, pakizh.IsStationFree(new EnergyStation() { Position = new Position(85, 70) }));
+            Assert.AreEqual(true, pakizh.IsStationFree(pakizh.sortedStations[0]));
         }
 
         [TestMethod()]

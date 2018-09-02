@@ -11,14 +11,15 @@ namespace Pakizh.Taras.RobotChallenge
     public class PakizhTarasAlgorithm : IRobotAlgorithm
     {
         //Vars
-        private int Round { get; set; }
+        public int Round { get; set; }
         public Robot.Common.Robot movingRobot;
-        private Map map;
+        public Map map;
         public IList<Robot.Common.Robot> robots;
-        private EnergyStation[] sortedStations;
-        private int myRobotsCount;
-        private Dictionary<int, Position> PropertyBook;
-        private int MyRobotId;
+        public EnergyStation[] sortedStations;
+        public int myRobotsCount;
+        public Dictionary<int, Position> PropertyBook;
+        public Dictionary<int, Position> TargetBook;
+        public int MyRobotId;
 
         //Constructor
         public PakizhTarasAlgorithm()
@@ -26,6 +27,7 @@ namespace Pakizh.Taras.RobotChallenge
             Round = 0;
             Logger.OnLogRound += (sender, e) => Round++;
             PropertyBook = new Dictionary<int, Position>();
+            TargetBook = new Dictionary<int, Position>();
         }
 
         //Init
@@ -35,10 +37,14 @@ namespace Pakizh.Taras.RobotChallenge
             map = _map;
             movingRobot = robots[_robotToMoveIndex];
             MyRobotId = _robotToMoveIndex;
+            myRobotsCount = robots.Count(x => x.Owner == movingRobot.Owner);
+
             sortedStations = map.Stations.Where(x=>!PropertyBook.ContainsValue(x.Position)).ToArray();
             sortedStations = sortedStations.OrderBy(x => Helper.FindDistance(x.Position, movingRobot.Position)).ToArray();
-            myRobotsCount = robots.Count(x => x.Owner == movingRobot.Owner);
+            
+
         }
+
 
         #region Interface_Description
         public string Author
@@ -87,6 +93,11 @@ namespace Pakizh.Taras.RobotChallenge
                 if(command is MoveCommand)
                 {
                     builder.Append(((MoveCommand)command).NewPosition);
+                    if (movingRobot.Position == ((MoveCommand)command).NewPosition)
+                    {
+                        builder.Append("-------------" + movingRobot.Energy + " " + sortedStations[0].Position);
+                        
+                    }
                 }
                 sw.WriteLine(builder);
             }
@@ -121,6 +132,10 @@ namespace Pakizh.Taras.RobotChallenge
             {
                 var stations = GetCollectedStations();
                 PropertyBook.Add(MyRobotId, stations.OrderByDescending(x=>x.Energy).First().Position);
+                if (TargetBook.ContainsKey(MyRobotId))
+                    TargetBook.Remove(MyRobotId);
+                if (TargetBook.ContainsValue(PropertyBook[MyRobotId]))
+                    TargetBook.Remove(TargetBook.Where(x => x.Value == PropertyBook[MyRobotId]).First().Key);
                 return new CollectEnergyCommand();
             }
             return null;
@@ -128,7 +143,6 @@ namespace Pakizh.Taras.RobotChallenge
         public MoveCommand GetMoveCommand()
         {
             EnergyStation station = null;
-            bool fuckingChecker = false;
             if (PropertyBook.ContainsKey(MyRobotId))
             {
                 if(IsStationFree(new EnergyStation() { Position = PropertyBook[MyRobotId] }))
@@ -144,29 +158,30 @@ namespace Pakizh.Taras.RobotChallenge
                     else station = map.Stations.First(x => x.Position == PropertyBook[MyRobotId]);
                 }
             }
-            
+            else if (TargetBook.ContainsKey(MyRobotId))
+            {
+                station = map.Stations.First(x => x.Position == TargetBook[MyRobotId]);
+            }
+
+            bool checker = true;
             if (station == null)
                 station = FindNearestFreeStation();
-            else fuckingChecker = true;
             do
             {
-                //if(station == null && fuckingChecker)
-                //{
-                //    station = FindNearestFreeStation();
-                //    fuckingChecker = false;
-                //}
                 if (station == null)
                     station = FindNearestOccupiedStation();
-                if (station == null)
-                    throw new Exception(fuckingChecker.ToString());
-                    //throw new Exception(movingRobot.Position + " " + sortedStations[0].Position + " ---- " + String.Join(" ", robots.Select(x => x.Position)));
+                if (station == null && !checker)
+                    station = FindNearestFreeStation();
                 Position position = FindNearestFreeCellAroundStation(station);
                 position = GetNextPosition(position, out int steps);
-                if (steps > 5 && IsStationFree(station))
+                if (checker && steps > 5 && IsStationFree(station))
                 {
                     station = null;
+                    checker = false;
                     continue;
                 }
+                if (!TargetBook.ContainsKey(MyRobotId) && !PropertyBook.ContainsKey(MyRobotId))
+                    TargetBook.Add(MyRobotId, station.Position);
                 return new MoveCommand() { NewPosition = position };
             } while (true);
         }
@@ -193,6 +208,7 @@ namespace Pakizh.Taras.RobotChallenge
         {
             int length = Math.Abs(movingRobot.Position.X - position.X) + Math.Abs(movingRobot.Position.Y - position.Y);
             int way = length / 2;
+            if (way == 0) way = 1;
             while(length > way)
             {
                 if(Math.Abs(position.X - movingRobot.Position.X) > Math.Abs(position.Y - movingRobot.Position.Y))
@@ -209,7 +225,7 @@ namespace Pakizh.Taras.RobotChallenge
                 }
                 if ((length - way == 1))
                 {
-                    if (IsCellFree(position))
+                    if (IsCellFree(position) || way == 1)
                         length--;
                     else continue;
                 }
