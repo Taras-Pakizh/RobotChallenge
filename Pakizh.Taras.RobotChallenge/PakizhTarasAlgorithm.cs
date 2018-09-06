@@ -39,10 +39,10 @@ namespace Pakizh.Taras.RobotChallenge
             MyRobotId = _robotToMoveIndex;
             myRobotsCount = robots.Count(x => x.Owner == movingRobot.Owner);
 
-            sortedStations = map.Stations.Where(x=>!PropertyBook.ContainsValue(x.Position)).ToArray();
+            sortedStations = map.Stations.Where(x=>!PropertyBook.ContainsValue(x.Position)).ToArray(); 
+            sortedStations = sortedStations.Where(x => TargetBook.Count(y => y.Value == x.Position) <= Helper.maxStationTarget).ToArray();
             sortedStations = sortedStations.OrderBy(x => Helper.FindDistance(x.Position, movingRobot.Position)).ToArray();
-            
-
+           
         }
 
 
@@ -134,7 +134,7 @@ namespace Pakizh.Taras.RobotChallenge
                 PropertyBook.Add(MyRobotId, stations.OrderByDescending(x=>x.Energy).First().Position);
                 if (TargetBook.ContainsKey(MyRobotId))
                     TargetBook.Remove(MyRobotId);
-                if (TargetBook.ContainsValue(PropertyBook[MyRobotId]))
+                while (TargetBook.ContainsValue(PropertyBook[MyRobotId]))
                     TargetBook.Remove(TargetBook.Where(x => x.Value == PropertyBook[MyRobotId]).First().Key);
                 return new CollectEnergyCommand();
             }
