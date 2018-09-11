@@ -35,6 +35,63 @@ namespace Pakizh.Taras.RobotChallenge
             }
             return result;
         }
+        public int GetDistance(int start, int finish, out bool reverse)
+        {
+            int result = Math.Abs(start - finish);
+            reverse = false;
+            if(100 - result < result)
+            {
+                result = 100 - result;
+                reverse = true;
+            }
+            return result;
+        }
+        public Position DoStep(Axis axis, ref bool reverse, Position position)
+        {
+            int currentPos = 0, currentRobot = 0;
+            if (axis == Axis.X)
+            {
+                currentPos = position.X;
+                currentRobot = movingRobot.Position.X;
+            }
+            else
+            {
+                currentPos = position.Y;
+                currentRobot = movingRobot.Position.Y;
+            }
+
+            if (!reverse)
+            {
+                if (currentPos > currentRobot)
+                    currentPos -= 1;
+                else currentPos += 1;
+            }
+            else
+            {
+                if (currentPos > currentRobot)
+                {
+                    currentPos += 1;
+                    if (currentPos == 100)
+                    {
+                        currentPos = 0;
+                        reverse = false;
+                    }
+                }
+                else
+                {
+                    currentPos -= 1;
+                    if (currentPos == -1)
+                    {
+                        currentPos = 99;
+                        reverse = false;
+                    }
+                }
+            }
+            if (axis == Axis.X)
+                position.X = currentPos;
+            else position.Y = currentPos;
+            return position;
+        }
         public Position DivideWayBy2(Position position)
         {
             int length = Math.Abs(movingRobot.Position.X - position.X) + Math.Abs(movingRobot.Position.Y - position.Y);
@@ -42,17 +99,16 @@ namespace Pakizh.Taras.RobotChallenge
             if (way == 0) way = 1;
             while (length > way)
             {
-                if (Math.Abs(position.X - movingRobot.Position.X) > Math.Abs(position.Y - movingRobot.Position.Y))
+                int DistanceX = GetDistance(position.X, movingRobot.Position.X, out bool ReverseX);
+                int DistanceY = GetDistance(position.Y, movingRobot.Position.Y, out bool ReverseY);
+
+                if (DistanceX > DistanceY)
                 {
-                    if (position.X > movingRobot.Position.X)
-                        position.X -= 1;
-                    else position.X += 1;
+                    position = DoStep(Axis.X, ref ReverseX, position);
                 }
                 else
                 {
-                    if (position.Y > movingRobot.Position.Y)
-                        position.Y -= 1;
-                    else position.Y += 1;
+                    position = DoStep(Axis.Y, ref ReverseY, position);
                 }
                 if ((length - way == 1))
                 {
@@ -66,6 +122,12 @@ namespace Pakizh.Taras.RobotChallenge
                 }
             }
             return position;
+        }
+
+        public enum Axis
+        {
+            X,
+            Y
         }
     }
 }

@@ -17,12 +17,19 @@ namespace Pakizh.Taras.RobotChallenge
 
         public static int FindDistance(Position a, Position b)
         {
-            return (int)(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2));
+            int distanceX = Math.Abs(a.X - b.X);
+            int distanceY = Math.Abs(a.Y - b.Y);
+            if (distanceX > 50) distanceX = 100 - distanceX;
+            if (distanceY > 50) distanceY = 100 - distanceY;
+            return (int)(Math.Pow(distanceX, 2) + Math.Pow(distanceY, 2));
         }
         public static bool CanCollect(Position station, Position position)
         {
             if ((Math.Abs(station.X - position.X) <= distance) && 
                 (Math.Abs(station.Y - position.Y) <= distance))
+                return true;
+            if ((100 - Math.Abs(station.X - position.X) <= distance) &&
+                (100 - Math.Abs(station.Y - position.Y) <= distance))
                 return true;
             return false;
         }

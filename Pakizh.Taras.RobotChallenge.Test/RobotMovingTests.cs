@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Robot.Common;
+using System.Diagnostics;
 
 namespace Pakizh.Taras.RobotChallenge.Tests
 {
@@ -43,7 +44,11 @@ namespace Pakizh.Taras.RobotChallenge.Tests
         [TestMethod()]
         public void GetNextPositionTest()
         {
-            Assert.Fail();
+            Position target = new Position(62, 3);
+            pakizh.movingRobot.Energy = 100;
+            Position nextPosition = new RobotMoving(pakizh.movingRobot, pakizh.robots).GetNextPosition(target, out int steps);
+            Debug.WriteLine(nextPosition.ToString());
+            Assert.AreEqual(target, nextPosition);
         }
 
         [TestMethod()]

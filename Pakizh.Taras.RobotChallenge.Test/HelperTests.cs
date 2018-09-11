@@ -15,11 +15,11 @@ namespace Pakizh.Taras.RobotChallenge.Tests
         [TestMethod()]
         public void FindDistanceTest()
         {
-            Position position1 = new Position(10, 10);
-            Position position2 = new Position(10, 10);
+            Position position1 = new Position(10, 98);
+            Position position2 = new Position(10, 3);
 
             int distance = Helper.FindDistance(position1, position2);
-            Assert.AreEqual(0, distance);
+            Assert.AreEqual(25, distance);
         }
 
         [TestMethod()]

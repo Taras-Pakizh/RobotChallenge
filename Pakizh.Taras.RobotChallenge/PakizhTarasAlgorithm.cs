@@ -45,7 +45,6 @@ namespace Pakizh.Taras.RobotChallenge
            
         }
 
-
         #region Interface_Description
         public string Author
         {
@@ -63,8 +62,6 @@ namespace Pakizh.Taras.RobotChallenge
             try
             {
                 Init(_robots, _robotToMoveIndex, _map);
-
-                
                 command = GetCreateNewRobotCommand();
                 if (command == null)
                     command = GetCollectEnergyCommand();
