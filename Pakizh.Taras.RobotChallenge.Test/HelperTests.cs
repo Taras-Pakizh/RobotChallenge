@@ -25,7 +25,9 @@ namespace Pakizh.Taras.RobotChallenge.Tests
         [TestMethod()]
         public void CanCollectTest()
         {
-            Assert.Fail();
+            Position position1 = new Position(10, 10);
+            Position position2 = new Position(13, 13);
+            Assert.IsTrue(Helper.CanCollect(position1, position2));
         }
     }
 }

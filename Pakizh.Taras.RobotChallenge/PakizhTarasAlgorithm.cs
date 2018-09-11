@@ -57,13 +57,6 @@ namespace Pakizh.Taras.RobotChallenge
         }
         #endregion
 
-        /// <summary>
-        /// First algorithm
-        /// </summary>
-        /// <param name="robots">All robots on the map</param>
-        /// <param name="robotToMoveIndex">my Robot</param>
-        /// <param name="map">Map</param>
-        /// <returns>Command</returns>
         public RobotCommand DoStep(IList<Robot.Common.Robot> _robots, int _robotToMoveIndex, Map _map)
         {
             RobotCommand command = null;
@@ -128,7 +121,7 @@ namespace Pakizh.Taras.RobotChallenge
                     return new CollectEnergyCommand();
                 else return null;
             }
-            if (IsCollecting(movingRobot.Position))
+            if (Helper.IsCollecting(movingRobot.Position, sortedStations))
             {
                 var stations = GetCollectedStations();
                 PropertyBook.Add(MyRobotId, stations.OrderByDescending(x=>x.Energy).First().Position);
@@ -145,7 +138,7 @@ namespace Pakizh.Taras.RobotChallenge
             EnergyStation station = null;
             if (PropertyBook.ContainsKey(MyRobotId))
             {
-                if(IsStationFree(new EnergyStation() { Position = PropertyBook[MyRobotId] }))
+                if(Helper.IsStationFree(new EnergyStation() { Position = PropertyBook[MyRobotId] }, robots, movingRobot))
                     station = map.Stations.First(x => x.Position == PropertyBook[MyRobotId]);
                 else
                 {
@@ -173,8 +166,9 @@ namespace Pakizh.Taras.RobotChallenge
                 if (station == null && !checker)
                     station = FindNearestFreeStation();
                 Position position = FindNearestFreeCellAroundStation(station);
-                position = GetNextPosition(position, out int steps);
-                if (checker && steps > 5 && IsStationFree(station))
+                RobotMoving strategyOfMoving = new RobotMoving(movingRobot, robots);
+                position = strategyOfMoving.GetNextPosition(position, out int steps);
+                if (checker && steps > 5 && Helper.IsStationFree(station, robots, movingRobot))
                 {
                     station = null;
                     checker = false;
@@ -186,62 +180,11 @@ namespace Pakizh.Taras.RobotChallenge
             } while (true);
         }
 
-        //StrategyOfMoving
-        public Position GetNextPosition(Position position, out int steps)
-        {
-            Position result = position.Copy();
-            steps = 1;
-            while (true)
-            {
-                int energySpend = Helper.FindDistance(result, movingRobot.Position) * steps;
-                if(movingRobot.Energy < energySpend)
-                {
-                    result = DivideWayBy2(result);
-                    steps *= 2;
-                    continue;
-                }
-                break;
-            }
-            return result;
-        }
-        public Position DivideWayBy2(Position position)
-        {
-            int length = Math.Abs(movingRobot.Position.X - position.X) + Math.Abs(movingRobot.Position.Y - position.Y);
-            int way = length / 2;
-            if (way == 0) way = 1;
-            while(length > way)
-            {
-                if(Math.Abs(position.X - movingRobot.Position.X) > Math.Abs(position.Y - movingRobot.Position.Y))
-                {
-                    if (position.X > movingRobot.Position.X)
-                        position.X -= 1;
-                    else position.X += 1;
-                }
-                else
-                {
-                    if (position.Y > movingRobot.Position.Y)
-                        position.Y -= 1;
-                    else position.Y += 1;
-                }
-                if ((length - way == 1))
-                {
-                    if (IsCellFree(position) || way == 1)
-                        length--;
-                    else continue;
-                }
-                else
-                {
-                    length--;
-                }
-            }
-            return position;
-        }
-
         //Find Station
         public EnergyStation FindNearestFreeStation()
         {
             foreach (var station in sortedStations)
-                if (IsStationFree(station))
+                if (Helper.IsStationFree(station, robots, movingRobot))
                     return station;
             return null;
         }
@@ -249,7 +192,7 @@ namespace Pakizh.Taras.RobotChallenge
         {
             foreach(var station in sortedStations)
             {
-                if (!IsStationFree(station))
+                if (!Helper.IsStationFree(station, robots, movingRobot))
                     return station;
             }
             return null;
@@ -281,7 +224,7 @@ namespace Pakizh.Taras.RobotChallenge
                 {
                     if(positions[row][col] == null)
                         positions[row][col] = new Position(positions[0][0].X + col, positions[0][0].Y);
-                    if (!IsCellValid(positions[row][col]) || !IsCellFree(positions[row][col]))
+                    if (!Helper.IsCellValid(positions[row][col]) || !Helper.IsCellFree(positions[row][col], robots, movingRobot))
                         continue;
                     distance = Helper.FindDistance(movingRobot.Position, positions[row][col]);
                     if(distance < minDistance)
@@ -292,41 +235,6 @@ namespace Pakizh.Taras.RobotChallenge
                 }
             }
             return result;
-        }
-
-        //Is true
-        public bool IsCellFree(Position cell)
-        {
-            foreach (var robot in robots)
-            {
-                if (robot.Position != movingRobot.Position)
-                {
-                    if (robot.Position == cell)
-                        return false;
-                }
-            }
-            return true;
-        }
-        public bool IsStationFree(EnergyStation station)
-        {
-            foreach (var robot in robots)
-                if ((robot.Position != movingRobot.Position) && Helper.CanCollect(station.Position, robot.Position))
-                    return false;
-            return true;
-        }
-        public bool IsCollecting(Position position)
-        {
-            foreach (var station in sortedStations)
-                if (Helper.CanCollect(station.Position, position))
-                    return true;
-            return false;
-        }
-        public bool IsCellValid(Position position)
-        {
-            if (position.X > -1 && position.X < 100)
-                if (position.Y > -1 && position.Y < 100)
-                    return true;
-            return false;
         }
     }
 }

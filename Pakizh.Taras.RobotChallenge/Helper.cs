@@ -26,5 +26,38 @@ namespace Pakizh.Taras.RobotChallenge
                 return true;
             return false;
         }
+        public static bool IsCellValid(Position position)
+        {
+            if (position.X > -1 && position.X < 100)
+                if (position.Y > -1 && position.Y < 100)
+                    return true;
+            return false;
+        }
+        public static bool IsCellFree(Position cell, IList<Robot.Common.Robot> robots, Robot.Common.Robot movingRobot)
+        {
+            foreach (var robot in robots)
+            {
+                if (robot.Position != movingRobot.Position)
+                {
+                    if (robot.Position == cell)
+                        return false;
+                }
+            }
+            return true;
+        }
+        public static bool IsStationFree(EnergyStation station, IList<Robot.Common.Robot> robots, Robot.Common.Robot movingRobot)
+        {
+            foreach (var robot in robots)
+                if ((robot.Position != movingRobot.Position) && Helper.CanCollect(station.Position, robot.Position))
+                    return false;
+            return true;
+        }
+        public static bool IsCollecting(Position position, IEnumerable<EnergyStation> sortedStations)
+        {
+            foreach (var station in sortedStations)
+                if (Helper.CanCollect(station.Position, position))
+                    return true;
+            return false;
+        }
     }
 }

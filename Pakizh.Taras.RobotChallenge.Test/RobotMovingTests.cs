@@ -9,13 +9,13 @@ using Robot.Common;
 
 namespace Pakizh.Taras.RobotChallenge.Tests
 {
-    [TestClass]
-    public class PakizhTarasAlgorithmTests
+    [TestClass()]
+    public class RobotMovingTests
     {
         private PakizhTarasAlgorithm pakizh;
 
         [TestInitialize]
-        public void SetValues()
+        public void TestInitialize()
         {
             pakizh = new PakizhTarasAlgorithm()
             {
@@ -41,13 +41,13 @@ namespace Pakizh.Taras.RobotChallenge.Tests
         }
 
         [TestMethod()]
-        public void DoStepTest()
+        public void GetNextPositionTest()
         {
             Assert.Fail();
         }
 
         [TestMethod()]
-        public void FindNearestFreeCellAroundStationTest()
+        public void DivideWayBy2Test()
         {
             Assert.Fail();
         }
