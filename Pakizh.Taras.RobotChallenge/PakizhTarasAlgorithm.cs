@@ -21,6 +21,9 @@ namespace Pakizh.Taras.RobotChallenge
         public Dictionary<int, Position> TargetBook;
         public int MyRobotId;
 
+        //--------temp
+        public int allEnergy;
+
         //Constructor
         public PakizhTarasAlgorithm()
         {
@@ -42,7 +45,8 @@ namespace Pakizh.Taras.RobotChallenge
             sortedStations = map.Stations.Where(x=>!PropertyBook.ContainsValue(x.Position)).ToArray(); 
             sortedStations = sortedStations.Where(x => TargetBook.Count(y => y.Value == x.Position) <= Helper.maxStationTarget).ToArray();
             sortedStations = sortedStations.OrderBy(x => Helper.FindDistance(x.Position, movingRobot.Position)).ToArray();
-           
+
+            allEnergy = robots.Where(x => x.Owner == movingRobot.Owner).Sum(x => x.Energy);
         }
 
         #region Interface_Description
@@ -80,6 +84,7 @@ namespace Pakizh.Taras.RobotChallenge
                 StringBuilder builder = new StringBuilder();
                 builder.Append("Id = " + MyRobotId.ToString() + " " + movingRobot.Position + " ");
                 builder.Append(command.ToString() + " ");
+                builder.Append("Energy = " + allEnergy + " ");
                 if(command is MoveCommand)
                 {
                     builder.Append(((MoveCommand)command).NewPosition);
@@ -98,7 +103,7 @@ namespace Pakizh.Taras.RobotChallenge
         public CreateNewRobotCommand GetCreateNewRobotCommand()
         {
             CreateNewRobotCommand command = null;
-            if ((myRobotsCount <= 100) && (myRobotsCount < map.Stations.Count) && (Round < Helper.RoundToStop))
+            if ((myRobotsCount < 100) && (myRobotsCount < map.Stations.Count) && (Round < Helper.RoundToStop))
             {
                 int distance = Helper.FindDistance(movingRobot.Position, sortedStations[0].Position);
                 if (distance < 100 && movingRobot.Energy > (100 + Helper.EnergyToBorn))
