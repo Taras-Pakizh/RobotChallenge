@@ -1,23 +1,23 @@
 ﻿using Robot.Common;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Pakizh.Taras.RobotChallenge
 {
     public class RobotMoving
     {
+        //Vars
         private Robot.Common.Robot movingRobot;
         private IList<Robot.Common.Robot> robots;
 
+        //Constructors
         public RobotMoving(Robot.Common.Robot robot, IList<Robot.Common.Robot> _robots)
         {
             movingRobot = robot;
             robots = _robots;
         }
 
+        //Methods
         public Position GetNextPosition(Position position, out int steps)
         {
             Position result = position.Copy();
@@ -28,14 +28,49 @@ namespace Pakizh.Taras.RobotChallenge
                 if (movingRobot.Energy < energySpend)
                 {
                     result = DivideWayBy2(result);
-                    steps *= 2;
+                    if (result == movingRobot.Position)
+                        break;
+                    steps = GetDistance(position) / GetDistance(result);
                     continue;
                 }
                 break;
             }
             return result;
         }
-        public int GetDistance(int start, int finish, out bool reverse)
+        public Position DivideWayBy2(Position position)
+        {
+            int length = GetDistance(position.X, movingRobot.Position.X, out bool ReverseX) + 
+                GetDistance(position.Y, movingRobot.Position.Y, out bool ReverseY);
+            if (length == 1)
+                return movingRobot.Position;
+            int way = length / 2;
+            while (length > way)
+            {
+                int DistanceX = GetDistance(position.X, movingRobot.Position.X, out ReverseX);
+                int DistanceY = GetDistance(position.Y, movingRobot.Position.Y, out ReverseY);
+
+                if (DistanceX > DistanceY)
+                {
+                    position = DoStep(Axis.X, ref ReverseX, position);
+                }
+                else
+                {
+                    position = DoStep(Axis.Y, ref ReverseY, position);
+                }
+                if ((length - way == 1))
+                {
+                    if (Helper.IsCellFree(position, robots, movingRobot) || way == 1)
+                        length--;
+                    else continue;
+                }
+                else
+                {
+                    length--;
+                }
+            }
+            return position;
+        }
+        private int GetDistance(int start, int finish, out bool reverse)
         {
             int result = Math.Abs(start - finish);
             reverse = false;
@@ -46,7 +81,12 @@ namespace Pakizh.Taras.RobotChallenge
             }
             return result;
         }
-        public Position DoStep(Axis axis, ref bool reverse, Position position)
+        private int GetDistance(Position station)
+        {
+            return  GetDistance(station.X, movingRobot.Position.X, out bool ReverseX) +
+                GetDistance(station.Y, movingRobot.Position.Y, out bool ReverseY);
+        }
+        private Position DoStep(Axis axis, ref bool reverse, Position position)
         {
             int currentPos = 0, currentRobot = 0;
             if (axis == Axis.X)
@@ -92,38 +132,8 @@ namespace Pakizh.Taras.RobotChallenge
             else position.Y = currentPos;
             return position;
         }
-        public Position DivideWayBy2(Position position)
-        {
-            int length = Math.Abs(movingRobot.Position.X - position.X) + Math.Abs(movingRobot.Position.Y - position.Y);
-            int way = length / 2;
-            if (way == 0) way = 1;
-            while (length > way)
-            {
-                int DistanceX = GetDistance(position.X, movingRobot.Position.X, out bool ReverseX);
-                int DistanceY = GetDistance(position.Y, movingRobot.Position.Y, out bool ReverseY);
 
-                if (DistanceX > DistanceY)
-                {
-                    position = DoStep(Axis.X, ref ReverseX, position);
-                }
-                else
-                {
-                    position = DoStep(Axis.Y, ref ReverseY, position);
-                }
-                if ((length - way == 1))
-                {
-                    if (Helper.IsCellFree(position, robots, movingRobot) || way == 1)
-                        length--;
-                    else continue;
-                }
-                else
-                {
-                    length--;
-                }
-            }
-            return position;
-        }
-
+        //Classes
         public enum Axis
         {
             X,

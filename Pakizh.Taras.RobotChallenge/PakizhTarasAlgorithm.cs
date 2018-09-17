@@ -70,7 +70,11 @@ namespace Pakizh.Taras.RobotChallenge
                 if (command == null)
                     command = GetCollectEnergyCommand();
                 if (command == null)
+                {
                     command = GetMoveCommand();
+                    if (((MoveCommand)command).NewPosition == movingRobot.Position)
+                        command = new CollectEnergyCommand();
+                }   
             }
             catch(Exception e)
             {
@@ -90,8 +94,12 @@ namespace Pakizh.Taras.RobotChallenge
                     builder.Append(((MoveCommand)command).NewPosition);
                     if (movingRobot.Position == ((MoveCommand)command).NewPosition)
                     {
-                        builder.Append("-------------" + movingRobot.Energy + " " + sortedStations[0].Position);
-                        
+                        Position pos = null;
+                        if (TargetBook.ContainsKey(MyRobotId))
+                            pos = TargetBook[MyRobotId];
+                        else if (PropertyBook.ContainsKey(MyRobotId))
+                            pos = PropertyBook[MyRobotId];
+                        builder.Append("-------------" + movingRobot.Energy + " " + pos);
                     }
                 }
                 sw.WriteLine(builder);
@@ -225,7 +233,7 @@ namespace Pakizh.Taras.RobotChallenge
                 for(int col = 0; col < positions.Length; ++col)
                 {
                     if(positions[row][col] == null)
-                        positions[row][col] = new Position(positions[0][0].X + col, positions[0][0].Y);
+                        positions[row][col] = new Position(positions[0][0].X + col, positions[row][0].Y);
                     if (!Helper.IsCellValid(positions[row][col]) || !Helper.IsCellFree(positions[row][col], robots, movingRobot))
                         continue;
                     distance = Helper.FindDistance(movingRobot.Position, positions[row][col]);

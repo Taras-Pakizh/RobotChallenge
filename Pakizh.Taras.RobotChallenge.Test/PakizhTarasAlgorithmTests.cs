@@ -22,16 +22,7 @@ namespace Pakizh.Taras.RobotChallenge.Tests
                 movingRobot = new Robot.Common.Robot() { Position = new Position(62, 98) },
                 robots = new List<Robot.Common.Robot>()
                 {
-                    new Robot.Common.Robot(){Position = new Position(69,81)},
-                    new Robot.Common.Robot(){Position = new Position(55,92)},
-                    new Robot.Common.Robot(){Position = new Position(76,91)},
-                    new Robot.Common.Robot(){Position = new Position(70,79)},
-                    new Robot.Common.Robot(){Position = new Position(49,99)},
-                    new Robot.Common.Robot(){Position = new Position(62,98)},
-                    new Robot.Common.Robot(){Position = new Position(60,85)},
-                    new Robot.Common.Robot(){Position = new Position(59,93)},
-                    new Robot.Common.Robot(){Position = new Position(62,97)},
-                    new Robot.Common.Robot(){Position = new Position(83,81)},
+                    new Robot.Common.Robot() { Position = new Position(62, 98) },
                 },
                 sortedStations = new EnergyStation[]
                 {
@@ -49,7 +40,43 @@ namespace Pakizh.Taras.RobotChallenge.Tests
         [TestMethod()]
         public void FindNearestFreeCellAroundStationTest()
         {
-            Assert.Fail();
+            //input
+            Position[] stations = new Position[]
+            {
+                new Position(10, 10),
+                new Position(10, 10),
+                new Position(16, 10),
+                //new Position(98, 98),
+                new Position(98, 1),
+                new Position(50, 50),
+            };
+            Position[] start = new Position[]
+            {
+                new Position(20, 20),
+                new Position(12, 12),
+                new Position(14, 5),
+                //new Position(0, 0),
+                new Position(5, 2),
+                new Position(30, 20),
+            };
+
+            //expected
+            Position[] expected = new Position[]
+            {
+                new Position(13, 13),
+                new Position(12, 12),
+                new Position(14, 7),
+                //new Position(99, 99),
+                new Position(99, 2),
+                new Position(47, 47),
+            };
+
+            //Assert
+            for(int i = 0; i < stations.Length; ++i)
+            {
+                pakizh.movingRobot.Position = start[i];
+                Assert.AreEqual(expected[i], pakizh.FindNearestFreeCellAroundStation(new EnergyStation() { Position = stations[i] }));
+            }
         }
     }
 }

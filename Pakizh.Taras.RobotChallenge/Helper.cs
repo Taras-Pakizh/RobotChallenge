@@ -1,26 +1,26 @@
-﻿using System;
+﻿using Robot.Common;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Robot.Common;
 
 namespace Pakizh.Taras.RobotChallenge
 {
     public static class Helper
     {
+        #region Variables
         public static int distance = 3;
         public static int EnergyToBorn = 50;
         public static int RoundToStop = 40;
         public static int maxRestoredEnergy = 200;
-        public static int maxStationTarget = 5;
+        public static int maxStationTarget = 3;
+        public static int mapSize = 100;
+        #endregion
 
         public static int FindDistance(Position a, Position b)
         {
             int distanceX = Math.Abs(a.X - b.X);
             int distanceY = Math.Abs(a.Y - b.Y);
-            if (distanceX > 50) distanceX = 100 - distanceX;
-            if (distanceY > 50) distanceY = 100 - distanceY;
+            if (distanceX > mapSize / 2) distanceX = mapSize - distanceX;
+            if (distanceY > mapSize / 2) distanceY = mapSize - distanceY;
             return (int)(Math.Pow(distanceX, 2) + Math.Pow(distanceY, 2));
         }
         public static bool CanCollect(Position station, Position position)
@@ -28,15 +28,15 @@ namespace Pakizh.Taras.RobotChallenge
             if ((Math.Abs(station.X - position.X) <= distance) && 
                 (Math.Abs(station.Y - position.Y) <= distance))
                 return true;
-            if ((100 - Math.Abs(station.X - position.X) <= distance) &&
-                (100 - Math.Abs(station.Y - position.Y) <= distance))
+            if ((mapSize - Math.Abs(station.X - position.X) <= distance) &&
+                (mapSize - Math.Abs(station.Y - position.Y) <= distance))
                 return true;
             return false;
         }
         public static bool IsCellValid(Position position)
         {
-            if (position.X > -1 && position.X < 100)
-                if (position.Y > -1 && position.Y < 100)
+            if (position.X > -1 && position.X < mapSize)
+                if (position.Y > -1 && position.Y < mapSize)
                     return true;
             return false;
         }
