@@ -21,9 +21,6 @@ namespace Pakizh.Taras.RobotChallenge
         public Dictionary<int, Position> TargetBook;
         public int MyRobotId;
 
-        //--------temp
-        public int allEnergy;
-
         //Constructor
         public PakizhTarasAlgorithm()
         {
@@ -45,8 +42,6 @@ namespace Pakizh.Taras.RobotChallenge
             sortedStations = map.Stations.Where(x=>!PropertyBook.ContainsValue(x.Position)).ToArray(); 
             sortedStations = sortedStations.Where(x => TargetBook.Count(y => y.Value == x.Position) <= Helper.maxStationTarget).ToArray();
             sortedStations = sortedStations.OrderBy(x => Helper.FindDistance(x.Position, movingRobot.Position)).ToArray();
-
-            allEnergy = robots.Where(x => x.Owner == movingRobot.Owner).Sum(x => x.Energy);
         }
 
         #region Interface_Description
@@ -63,46 +58,15 @@ namespace Pakizh.Taras.RobotChallenge
         public RobotCommand DoStep(IList<Robot.Common.Robot> _robots, int _robotToMoveIndex, Map _map)
         {
             RobotCommand command = null;
-            try
+            Init(_robots, _robotToMoveIndex, _map);
+            command = GetCreateNewRobotCommand();
+            if (command == null)
+                command = GetCollectEnergyCommand();
+            if (command == null)
             {
-                Init(_robots, _robotToMoveIndex, _map);
-                command = GetCreateNewRobotCommand();
-                if (command == null)
-                    command = GetCollectEnergyCommand();
-                if (command == null)
-                {
-                    command = GetMoveCommand();
-                    if (((MoveCommand)command).NewPosition == movingRobot.Position)
-                        command = new CollectEnergyCommand();
-                }   
-            }
-            catch(Exception e)
-            {
-                using(StreamWriter sw = new StreamWriter(@"log.txt", true, Encoding.Default))
-                {
-                    sw.WriteLine(e.Message + " " + e.TargetSite.ToString() + " " + e.Source.ToString());
-                }
-            }
-            using(StreamWriter sw = new StreamWriter(@"log.txt", true, Encoding.Default))
-            {
-                StringBuilder builder = new StringBuilder();
-                builder.Append("Id = " + MyRobotId.ToString() + " " + movingRobot.Position + " ");
-                builder.Append(command.ToString() + " ");
-                builder.Append("Energy = " + allEnergy + " ");
-                if(command is MoveCommand)
-                {
-                    builder.Append(((MoveCommand)command).NewPosition);
-                    if (movingRobot.Position == ((MoveCommand)command).NewPosition)
-                    {
-                        Position pos = null;
-                        if (TargetBook.ContainsKey(MyRobotId))
-                            pos = TargetBook[MyRobotId];
-                        else if (PropertyBook.ContainsKey(MyRobotId))
-                            pos = PropertyBook[MyRobotId];
-                        builder.Append("-------------" + movingRobot.Energy + " " + pos);
-                    }
-                }
-                sw.WriteLine(builder);
+                command = GetMoveCommand();
+                if (((MoveCommand)command).NewPosition == movingRobot.Position)
+                    command = new CollectEnergyCommand();
             }
             return command;
         }
