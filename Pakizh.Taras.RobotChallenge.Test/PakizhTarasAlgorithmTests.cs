@@ -1,11 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Pakizh.Taras.RobotChallenge;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Robot.Common;
+using System.Collections.Generic;
 
 namespace Pakizh.Taras.RobotChallenge.Tests
 {
@@ -32,7 +27,19 @@ namespace Pakizh.Taras.RobotChallenge.Tests
         }
 
         [TestMethod()]
-        public void DoStepTest()
+        public void DoStepCreateRobotTest()
+        {
+            Assert.Fail();
+        }
+
+        [TestMethod]
+        public void DoStepCollectEnergyTest()
+        {
+            Assert.Fail();
+        }
+
+        [TestMethod]
+        public void DoStepMoveTest()
         {
             Assert.Fail();
         }
@@ -46,7 +53,8 @@ namespace Pakizh.Taras.RobotChallenge.Tests
                 new Position(10, 10),
                 new Position(10, 10),
                 new Position(16, 10),
-                //new Position(98, 98),
+                //
+                new Position(98, 98),
                 new Position(98, 1),
                 new Position(50, 50),
             };
@@ -55,7 +63,7 @@ namespace Pakizh.Taras.RobotChallenge.Tests
                 new Position(20, 20),
                 new Position(12, 12),
                 new Position(14, 5),
-                //new Position(0, 0),
+                new Position(0, 0),
                 new Position(5, 2),
                 new Position(30, 20),
             };
@@ -66,7 +74,7 @@ namespace Pakizh.Taras.RobotChallenge.Tests
                 new Position(13, 13),
                 new Position(12, 12),
                 new Position(14, 7),
-                //new Position(99, 99),
+                new Position(99, 99),
                 new Position(99, 2),
                 new Position(47, 47),
             };

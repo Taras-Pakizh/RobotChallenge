@@ -14,6 +14,35 @@ namespace Pakizh.Taras.RobotChallenge.Tests
 
             int distance = Helper.FindDistance(position1, position2);
             Assert.AreEqual(25, distance);
+
+
+            //input
+            Position[] StartPositions = new Position[]
+            {
+                new Position(10, 98),
+                new Position(0, 0),
+                new Position(10, 10),
+                new Position(99, 0)
+            };
+            Position[] EndPositions = new Position[]
+            {
+                new Position(10, 3),
+                new Position(98, 98),
+                new Position(10, 10),
+                new Position(0, 99)
+            };
+
+            //expected
+            int[] expected = new int[]
+            {
+                25, 8, 0, 2
+            };
+
+            //Assert
+            for(int i = 0; i < StartPositions.Length; ++i)
+            {
+                Assert.AreEqual(expected[i], Helper.FindDistance(StartPositions[i], EndPositions[i]));
+            }
         }
 
         [TestMethod()]
