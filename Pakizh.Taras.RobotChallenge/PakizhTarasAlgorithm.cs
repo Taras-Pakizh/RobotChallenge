@@ -149,11 +149,6 @@ namespace Pakizh.Taras.RobotChallenge
             if (PropertyBook.ContainsKey(MyRobotId))
             {
                 station = map.Stations.First(x => x.Position == PropertyBook[MyRobotId]);
-                int distance = Helper.FindDistance(movingRobot.Position, FindNearestFreeCellAroundStation(station));
-                if(distance > movingRobot.Energy)
-                {
-                    PropertyBook.Remove(MyRobotId);
-                }
             }
             else if (TargetBook.ContainsKey(MyRobotId))
             {
