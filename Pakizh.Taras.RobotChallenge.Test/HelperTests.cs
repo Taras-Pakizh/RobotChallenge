@@ -51,6 +51,32 @@ namespace Pakizh.Taras.RobotChallenge.Tests
             Position position1 = new Position(10, 10);
             Position position2 = new Position(13, 13);
             Assert.IsTrue(Helper.CanCollect(position1, position2));
+
+            //input
+            Position[] positions = new Position[]
+            {
+                new Position(10, 10),
+                new Position(15, 5),
+                new Position(3, 3)
+            };
+            Position[] stations = new Position[]
+            {
+                new Position(13, 13),
+                new Position(15, 5),
+                new Position(99, 99)
+            };
+
+            //expected
+            bool[] expected = new bool[]
+            {
+                true, true, false
+            };
+
+            //Assert
+            for(int i = 0; i < positions.Length; ++i)
+            {
+                Assert.AreEqual(expected[i], Helper.CanCollect(positions[i], stations[i]));
+            }
         }
     }
 }

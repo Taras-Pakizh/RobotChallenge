@@ -12,36 +12,55 @@ namespace Pakizh.Taras.RobotChallenge.Tests
         [TestInitialize]
         public void SetValues()
         {
+            var myRobot = new Robot.Common.Robot() { Position = new Position(20, 20), Energy = 100000 };
             pakizh = new PakizhTarasAlgorithm()
             {
-                movingRobot = new Robot.Common.Robot() { Position = new Position(62, 98) },
+                movingRobot = myRobot,
                 robots = new List<Robot.Common.Robot>()
                 {
-                    new Robot.Common.Robot() { Position = new Position(62, 98) },
+                    myRobot,
+                    new Robot.Common.Robot(){Position = new Position(30, 30)},
+                    new Robot.Common.Robot(){Position = new Position(10, 10)},
+                    new Robot.Common.Robot(){Position = new Position(10, 30)},
+                    new Robot.Common.Robot(){Position = new Position(5, 20)},
                 },
                 sortedStations = new EnergyStation[]
                 {
-                    new EnergyStation() { Position = new Position(85, 70) }
-                }
+                    new EnergyStation() { Position = new Position(45, 10) },
+                    new EnergyStation() { Position = new Position(30, 30) },
+                    new EnergyStation() { Position = new Position(5, 18) },
+                },
+                TargetBook = new Dictionary<int, Position>(),
+                PropertyBook = new Dictionary<int, Position>(),
+                MyRobotId = 0,
+            };
+            pakizh.map = new Map()
+            {
+                Stations = pakizh.sortedStations
             };
         }
 
-        [TestMethod()]
-        public void DoStepCreateRobotTest()
-        {
-            Assert.Fail();
-        }
-
         [TestMethod]
-        public void DoStepCollectEnergyTest()
+        public void GetMoveCommandTest()
         {
-            Assert.Fail();
-        }
+            //free
+            var expected = new Position(42, 13);
+            Assert.AreEqual(expected, pakizh.GetMoveCommand().NewPosition);
 
-        [TestMethod]
-        public void DoStepMoveTest()
-        {
-            Assert.Fail();
+            //target
+            var input = new Position(30, 30);
+            pakizh.TargetBook.Clear();
+            pakizh.TargetBook.Add(0, input);
+            expected = new Position(27, 27);
+            Assert.AreEqual(expected, pakizh.GetMoveCommand().NewPosition);
+
+            //occupied
+            pakizh.TargetBook.Clear();
+            pakizh.sortedStations[0] = new EnergyStation() { Position = new Position(5, 20) };
+            pakizh.map.Stations = pakizh.sortedStations;
+            pakizh.robots.RemoveAt(4);
+            expected = new Position(8, 20);
+            Assert.AreEqual(expected, pakizh.GetMoveCommand().NewPosition);
         }
 
         [TestMethod()]
