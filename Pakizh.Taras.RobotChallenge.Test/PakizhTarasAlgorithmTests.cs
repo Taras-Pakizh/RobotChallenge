@@ -19,48 +19,118 @@ namespace Pakizh.Taras.RobotChallenge.Tests
                 robots = new List<Robot.Common.Robot>()
                 {
                     myRobot,
+                    new Robot.Common.Robot(){Position = new Position(42, 10)},
                     new Robot.Common.Robot(){Position = new Position(30, 30)},
-                    new Robot.Common.Robot(){Position = new Position(10, 10)},
                     new Robot.Common.Robot(){Position = new Position(10, 30)},
-                    new Robot.Common.Robot(){Position = new Position(5, 20)},
+                    new Robot.Common.Robot(){Position = new Position(5, 25)},
                 },
-                sortedStations = new EnergyStation[]
-                {
-                    new EnergyStation() { Position = new Position(45, 10) },
-                    new EnergyStation() { Position = new Position(30, 30) },
-                    new EnergyStation() { Position = new Position(5, 18) },
-                },
+                sortedStations = new EnergyStation[0],
                 TargetBook = new Dictionary<int, Position>(),
                 PropertyBook = new Dictionary<int, Position>(),
                 MyRobotId = 0,
+            };
+        }
+
+        [TestMethod]
+        public void ChooseFreeTest()
+        {
+            pakizh.sortedStations = new EnergyStation[]
+            {
+                new EnergyStation() { Position = new Position(45, 10) },
+                new EnergyStation() { Position = new Position(30, 30) },
+                new EnergyStation() { Position = new Position(5, 18) },
             };
             pakizh.map = new Map()
             {
                 Stations = pakizh.sortedStations
             };
+
+            var expected = new Position(8, 20);
+            Assert.AreEqual(expected, pakizh.GetMoveCommand().NewPosition);
         }
 
         [TestMethod]
-        public void GetMoveCommandTest()
+        public void ChooseOccupiedTest()
         {
-            //free
-            var expected = new Position(42, 13);
-            Assert.AreEqual(expected, pakizh.GetMoveCommand().NewPosition);
+            pakizh.sortedStations = new EnergyStation[]
+            {
+                new EnergyStation() { Position = new Position(40, 10) },
+                new EnergyStation() { Position = new Position(33, 30) },
+                new EnergyStation() { Position = new Position(5, 25) },
+            };
+            pakizh.map = new Map()
+            {
+                Stations = pakizh.sortedStations
+            };
 
-            //target
-            var input = new Position(30, 30);
-            pakizh.TargetBook.Clear();
-            pakizh.TargetBook.Add(0, input);
-            expected = new Position(27, 27);
+            var expected = new Position(37, 13);
             Assert.AreEqual(expected, pakizh.GetMoveCommand().NewPosition);
+        }
 
-            //occupied
+        [TestMethod]
+        public void TargetBookTest()
+        {
+            pakizh.sortedStations = new EnergyStation[]
+            {
+                new EnergyStation() { Position = new Position(30, 30) },
+                new EnergyStation() { Position = new Position(45, 30) },
+            };
+            pakizh.map = new Map()
+            {
+                Stations = pakizh.sortedStations
+            };
+            pakizh.robots.Add(new Robot.Common.Robot()
+            {
+                Position = new Position(42, 27)
+            });
+
             pakizh.TargetBook.Clear();
-            pakizh.sortedStations[0] = new EnergyStation() { Position = new Position(5, 20) };
-            pakizh.map.Stations = pakizh.sortedStations;
-            pakizh.robots.RemoveAt(4);
-            expected = new Position(8, 20);
+            pakizh.TargetBook.Add(0, new Position(45, 30));
+            var expected = new Position(42, 28);
             Assert.AreEqual(expected, pakizh.GetMoveCommand().NewPosition);
+        }
+
+        [TestMethod]
+        public void PropertyBookTest()
+        {
+            pakizh.sortedStations = new EnergyStation[]
+            {
+                new EnergyStation() { Position = new Position(25, 20) },
+                new EnergyStation() { Position = new Position(25, 10) },
+            };
+            pakizh.map = new Map()
+            {
+                Stations = pakizh.sortedStations
+            };
+            pakizh.robots.Add(new Robot.Common.Robot()
+            {
+                Position = new Position(23, 13)
+            });
+
+            pakizh.PropertyBook.Clear();
+            pakizh.PropertyBook.Add(0, new Position(25, 10));
+            var expected = new Position(22, 13);
+            Assert.AreEqual(expected, pakizh.GetMoveCommand().NewPosition);
+        }
+
+        [TestMethod]
+        public void GetCollectEnergyCommandTest()
+        {
+            pakizh.sortedStations = new EnergyStation[]
+            {
+                new EnergyStation(){Position = new Position(23, 23)},
+            };
+            var command = pakizh.GetCollectEnergyCommand();
+            Assert.IsInstanceOfType(command, typeof(CollectEnergyCommand));
+
+            pakizh.sortedStations = new EnergyStation[]
+            {
+                new EnergyStation(){Position = new Position(25, 25)}
+            };
+            pakizh.PropertyBook.Clear();
+            pakizh.PropertyBook.Add(0, new Position(25, 25));
+            command = pakizh.GetCollectEnergyCommand();
+            Assert.IsNull(command);
         }
 
         [TestMethod()]
