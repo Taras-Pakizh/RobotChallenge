@@ -8,8 +8,6 @@ using System.IO;
 
 namespace Pakizh.Taras.RobotChallenge
 {
-    
-
     public class PakizhTarasAlgorithm : IRobotAlgorithm
     {
         //Vars
@@ -30,7 +28,7 @@ namespace Pakizh.Taras.RobotChallenge
             Logger.OnLogRound += (sender, e) => Round++;
             Logger.OnLogMessage += (sender, e) =>
             {
-                using (StreamWriter sw = new StreamWriter(@"log.txt", true, Encoding.Default))
+                using (StreamWriter sw = new StreamWriter(@"logMessages.txt", true, Encoding.Default))
                     sw.WriteLine("Message: " + e.Message + ". Priority: " + e.Priority);
             };
 
@@ -138,6 +136,11 @@ namespace Pakizh.Taras.RobotChallenge
                     station = FindNearestFreeStation();
                 Position position = FindNearestFreeCellAroundStation(station);
                 RobotMoving strategyOfMoving = new RobotMoving(movingRobot, robots);
+                strategyOfMoving.StepDone += (sender, e) =>
+                {
+                    using (StreamWriter sw = new StreamWriter(@"logSteps.txt", true, Encoding.Default))
+                        sw.WriteLine(e.ToString());
+                };
                 position = strategyOfMoving.GetNextPosition(position, out int steps);
                 if (checker && steps > 5 && Helper.IsStationFree(station, robots, movingRobot))
                 {
