@@ -30,7 +30,7 @@ namespace Pakizh.Taras.RobotChallenge
             Logger.OnLogRound += (sender, e) => Round++;
             Logger.OnLogMessage += (sender, e) =>
             {
-                using (StreamWriter sw = new StreamWriter("log.txt"))
+                using (StreamWriter sw = new StreamWriter(@"log.txt", true, Encoding.Default))
                     sw.WriteLine("Message: " + e.Message + ". Priority: " + e.Priority);
             };
 
