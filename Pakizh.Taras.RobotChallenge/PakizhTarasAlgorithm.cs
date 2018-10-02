@@ -8,6 +8,8 @@ using System.IO;
 
 namespace Pakizh.Taras.RobotChallenge
 {
+    
+
     public class PakizhTarasAlgorithm : IRobotAlgorithm
     {
         //Vars
@@ -26,6 +28,12 @@ namespace Pakizh.Taras.RobotChallenge
         {
             Round = 0;
             Logger.OnLogRound += (sender, e) => Round++;
+            Logger.OnLogMessage += (sender, e) =>
+            {
+                using (StreamWriter sw = new StreamWriter("log.txt"))
+                    sw.WriteLine("Message: " + e.Message + ". Priority: " + e.Priority);
+            };
+
             PropertyBook = new Dictionary<int, Position>();
             TargetBook = new Dictionary<int, Position>();
         }
