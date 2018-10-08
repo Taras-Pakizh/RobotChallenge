@@ -6,6 +6,11 @@
 *.user
 *.exe
 *.config
+*.csproj
+*.baml
+*.txt
+*.resources
+*.lref
 packages/
 Pakizh.Taras.RobotChallenge/obj/
 Pakizh.Taras.RobotChallenge/Properties/
@@ -17,6 +22,8 @@ Pakizh.Taras.RobotChallenge.Test/obj/
 Pakizh.Taras.RobotChallenge.Test/packages.config
 Pakizh.Taras.RobotChallenge.sln
 Pakizh.Taras.RobotChallenge/Pakizh.Taras.RobotChallenge.csproj
-
-
+SubWindow/obj/Debug/App.g.cs
+SubWindow/obj/Debug/MainWindow.g.cs
+SubWindow/obj/Debug/SubWindow.csproj.CopyComplete
+SubWindow/obj/Debug/MainWindow.g.i.cs
 

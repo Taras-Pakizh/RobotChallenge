@@ -7,6 +7,20 @@
         mc:Ignorable="d" Height="220.429" Width="442.438" Title="Online loger">
     
     <Grid>
-        <TextBlock Name="MyLogger"></TextBlock>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.1*"/>
+            <RowDefinition Height="0.9*"/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.5*"/>
+            <ColumnDefinition Width="0.5*"/>
+        </Grid.ColumnDefinitions>
+
+        <Button Grid.Column="0" Grid.Row="0" Content="Stop Logging" Click="Stop_Click"/>
+        <Button Grid.Column="1" Grid.Row="0" Content="Start Logging" Click="Start_Click_1"/>
+        <ListBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Name="MyLogger"></ListBox>
+        
     </Grid>
 </Window>

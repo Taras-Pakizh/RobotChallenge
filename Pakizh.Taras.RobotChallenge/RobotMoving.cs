@@ -10,9 +10,6 @@ namespace Pakizh.Taras.RobotChallenge
         private Robot.Common.Robot movingRobot;
         private IList<Robot.Common.Robot> robots;
 
-        //Events
-        public event StepsHaldler StepDone;
-
         //Constructors
         public RobotMoving(Robot.Common.Robot robot, IList<Robot.Common.Robot> _robots)
         {
@@ -130,7 +127,6 @@ namespace Pakizh.Taras.RobotChallenge
                     }
                 }
             }
-            StepDone?.Invoke(this, new StepEventArgs() { CurrentPosition = currentPos, PrevPosition = position, axis = axis });
             if (axis == Axis.X)
                 position.X = currentPos;
             else position.Y = currentPos;

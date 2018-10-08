@@ -10,7 +10,7 @@ namespace Pakizh.Taras.RobotChallenge
 {
     public class PakizhTarasAlgorithm : IRobotAlgorithm
     {
-        //Vars
+        #region Variables
         public int Round { get; set; }
         public Robot.Common.Robot movingRobot;
         public Map map;
@@ -20,17 +20,28 @@ namespace Pakizh.Taras.RobotChallenge
         public Dictionary<int, Position> PropertyBook;
         public Dictionary<int, Position> TargetBook;
         public int MyRobotId;
+        #endregion
+
+        //Events
+        public event SubWindow.RobotLogicHaldler RobotLogic;
 
         //Constructor
         public PakizhTarasAlgorithm()
         {
             Round = 0;
             Logger.OnLogRound += (sender, e) => Round++;
-            Logger.OnLogMessage += (sender, e) =>
-            {
-                using (StreamWriter sw = new StreamWriter(@"logMessages.txt", true, Encoding.Default))
-                    sw.WriteLine("Message: " + e.Message + ". Priority: " + e.Priority);
-            };
+
+            SubWindow.MainWindow CommonMassegeWindow = new SubWindow.MainWindow();
+            Logger.OnLogMessage += CommonMassegeWindow.AddMessage;
+            CommonMassegeWindow.Show();
+            CommonMassegeWindow.StartLogging += (sender, e) => Logger.OnLogMessage += CommonMassegeWindow.AddMessage;
+            CommonMassegeWindow.StopLogging += (sender, e) => Logger.OnLogMessage -= CommonMassegeWindow.AddMessage;
+
+            SubWindow.MainWindow RobotLogicMassegeWindow = new SubWindow.MainWindow();
+            RobotLogic += RobotLogicMassegeWindow.AddRobotMessage;
+            RobotLogicMassegeWindow.Show();
+            RobotLogicMassegeWindow.StartLogging += (sender, e) => RobotLogic += RobotLogicMassegeWindow.AddRobotMessage;
+            RobotLogicMassegeWindow.StopLogging += (sender, e) => RobotLogic -= RobotLogicMassegeWindow.AddRobotMessage;
 
             PropertyBook = new Dictionary<int, Position>();
             TargetBook = new Dictionary<int, Position>();
@@ -105,10 +116,35 @@ namespace Pakizh.Taras.RobotChallenge
             {
                 var stations = GetCollectedStations();
                 PropertyBook.Add(MyRobotId, stations.OrderByDescending(x=>x.Energy).First().Position);
+                RobotLogic?.Invoke(this, new SubWindow.RobotLogicEventArgs()
+                {
+                    station = PropertyBook[MyRobotId],
+                    RobotId = MyRobotId,
+                    robot = robots[MyRobotId],
+                    robotEvent = SubWindow.RobotLogicEventArgs.RobotEvents.PropertyAdded
+                });
                 if (TargetBook.ContainsKey(MyRobotId))
+                {
+                    RobotLogic?.Invoke(this, new SubWindow.RobotLogicEventArgs()
+                    {
+                        station = TargetBook[MyRobotId],
+                        RobotId = MyRobotId,
+                        robot = robots[MyRobotId],
+                        robotEvent = SubWindow.RobotLogicEventArgs.RobotEvents.TargetAdded
+                    });
                     TargetBook.Remove(MyRobotId);
+                }
                 while (TargetBook.ContainsValue(PropertyBook[MyRobotId]))
+                {
+                    RobotLogic?.Invoke(this, new SubWindow.RobotLogicEventArgs()
+                    {
+                        station = TargetBook[MyRobotId],
+                        RobotId = MyRobotId,
+                        robot = robots[MyRobotId],
+                        robotEvent = SubWindow.RobotLogicEventArgs.RobotEvents.TargetRemoved
+                    });
                     TargetBook.Remove(TargetBook.Where(x => x.Value == PropertyBook[MyRobotId]).First().Key);
+                }
                 return new CollectEnergyCommand();
             }
             return null;
@@ -136,11 +172,6 @@ namespace Pakizh.Taras.RobotChallenge
                     station = FindNearestFreeStation();
                 Position position = FindNearestFreeCellAroundStation(station);
                 RobotMoving strategyOfMoving = new RobotMoving(movingRobot, robots);
-                strategyOfMoving.StepDone += (sender, e) =>
-                {
-                    using (StreamWriter sw = new StreamWriter(@"logSteps.txt", true, Encoding.Default))
-                        sw.WriteLine(e.ToString());
-                };
                 position = strategyOfMoving.GetNextPosition(position, out int steps);
                 if (checker && steps > 5 && Helper.IsStationFree(station, robots, movingRobot))
                 {
@@ -149,7 +180,16 @@ namespace Pakizh.Taras.RobotChallenge
                     continue;
                 }
                 if (!TargetBook.ContainsKey(MyRobotId) && !PropertyBook.ContainsKey(MyRobotId))
+                {
                     TargetBook.Add(MyRobotId, station.Position);
+                    RobotLogic?.Invoke(this, new SubWindow.RobotLogicEventArgs()
+                    {
+                        station = TargetBook[MyRobotId],
+                        RobotId = MyRobotId,
+                        robot = robots[MyRobotId],
+                        robotEvent = SubWindow.RobotLogicEventArgs.RobotEvents.TargetAdded
+                    });
+                }
                 return new MoveCommand() { NewPosition = position };
             } while (true);
         }
